@@ -37,6 +37,7 @@ services:
     actions: # 自定义执行逻辑，关于actions 的使用，可以参考：https://www.serverless-devs.com/serverless-devs/yaml#行为描述
       pre-deploy: # 在deploy之前运行
         - component: fc build --use-docker --dockerfile ./code/Dockerfile
+    props:
       region: ${vars.region} # 关于变量的使用方法，可以参考：https://www.serverless-devs.com/serverless-devs/yaml#变量赋值
       service: ${vars.service}
       function:
