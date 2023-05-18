@@ -119,6 +119,9 @@ spec:
           instanceId: ""
           dockerfile: ./code/Dockerfile
     taskTemplate: build-image-task
+    runAfters:
+    # 需要在pre-check执行后才执行
+    - name: pre-check-approval
   # 构建并部署
   - name: build-and-deploy
     context:
