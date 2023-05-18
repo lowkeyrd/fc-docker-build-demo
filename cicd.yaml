@@ -109,6 +109,16 @@ spec:
     runAfters:
     # 需要在pre-check执行后才执行
     - name: pre-check
+  # 镜像构建
+  - name: build-image
+    context:
+      data:
+        enable: true
+        build:
+          image: registry-vpc.cn-hangzhou.aliyuncs.com/fc-demo2/fengchong-test:<%.git.shortCommitId%>
+          instanceId: ""
+          dockerfile: ./code/Dockerfile
+    taskTemplate: build-image-task
   # 构建并部署
   - name: build-and-deploy
     context:
@@ -166,6 +176,7 @@ spec:
                 exit 1
               fi
               echo "s.yaml file location: ${deploy_file}"
+              export GIT_COMMIT_ID=<%.git.shortCommitId%>
               s deploy --access "${alias}" -t "${deploy_file}" --use-local --assume-yes --skip-push
               echo "Deploy by Serverless Devs success."
     taskTemplate: serverless-runner-task
