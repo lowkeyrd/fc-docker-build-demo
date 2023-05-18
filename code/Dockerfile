@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # 构建生产环境代码
-RUN npm run build
+#RUN npm run build
 
 # 使用nginx来提供静态资源服务
 FROM nginx:alpine
