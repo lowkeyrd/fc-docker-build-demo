@@ -43,12 +43,12 @@ services:
         name: ${vars.functionName}
         description: 'Serverless Devs Web Framework Function'
         codeUri: './code'
-        runtime: custom
+        runtime: custom-container
         timeout: 60
         caPort: 9000
-        customRuntimeConfig:
-          command:
-            - ./bootstrap
+        customContainerConfig:
+          image: registry-vpc.cn-hangzhou.aliyuncs.com/fc-demo2/fengchong-test:v0.1
+          accelerationType: "Default"
       triggers:
         - name: httpTrigger
           type: http
