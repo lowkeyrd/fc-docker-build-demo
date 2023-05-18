@@ -180,6 +180,7 @@ spec:
               fi
               echo "s.yaml file location: ${deploy_file}"
               export GIT_COMMIT_ID=<%.git.shortCommitId%>
+              echo "GIT_COMMIT_ID is ${GIT_COMMIT_ID}"
               s deploy --access "${alias}" -t "${deploy_file}" --use-local --assume-yes --skip-push
               echo "Deploy by Serverless Devs success."
     taskTemplate: serverless-runner-task
