@@ -1,0 +1,175 @@
+# 提交流水线执行
+kind: Pipeline
+# 流水线执行名称，需要全局唯一。如果流水线模板存在，则不能成功提交流水线执行
+# 推荐使用commitID与时间戳构造唯一的名称
+name: "p-<% .git.shortCommitId %>-<% .currentTimestampMs %>"
+# 一些任意的描述信息
+description: 'demo pipeline'
+# 添加任意的labels，用于查询过滤
+# 应用中心会在提交时也会添加其他labels
+labels:
+  myLabel: my-cicd-example
+spec:
+  context:
+    data:
+      appName: <% .appName %>
+  # 本次执行使用的流水线模板
+  # 可以选择已有的模板，也可以在配置文件中自定义
+  # 这里的例子为引用下文
+  templateName: mytemplate-<% .git.branch %>
+
+---
+
+# 修改流水线模板，应用中心会按照该配置，创建或更新对应的模板
+kind: PipelineTemplate
+# 流水线模板名称，需要全局唯一，如果流水线模板存在，则会更新已有模板
+# 推荐使用Branch或MR关联的ID构造唯一的名称
+name: mytemplate-<% .git.branch %>
+# 一些任意的描述信息
+description: 用于测试环境的流水线模板
+# 添加任意的labels，用于查询过滤
+# 应用中心会在提交时也会添加其他labels
+labels:
+  myLabel: my-cicd-example
+spec:
+  context:
+    data:
+      # 环境名称，推荐不同的环境使用不同的流水线模板
+      envName: test
+      deployFile: s.yaml
+  # 要执行的任务，默认所有任务会一同尝试执行
+  # 执行会满足runAfters引入的先后约束，任务必须在runAfters声明的任务执行完毕后才可以被执行
+  # 用户可以使用此特性，达到DAG描述的效果
+  tasks:
+  # 构建前检查
+  - name: pre-check
+    context:
+      data:
+        displayName: "前置检查"
+        # 打开任务执行，默认是关闭的
+        enable: true
+        # 同样可以在此处声明钉钉告警配置，修改告警模板
+        # dingdingNotification:
+        # 同样可以在此处声明或修改RunnerConfig
+        # runnerConfig:
+        # 执行步骤。下述步骤将会采用开源项目serverless-cd提供的engine进行执行
+        steps:
+          # 第一步，checkout代码
+          # 这里采用了plugin机制，运行serverless-cd社区的插件
+          # @serverless-cd/checkout是一个社区提供的插件，它会将代码checkout到默认路径
+          # 我们会陆续为社区提供更多的插件
+          - plugin: "@serverless-cd/checkout"
+          # 第二步，初始化s工具
+          # 这里采用了bash执行机制，运行一段自定义的bash脚本。
+          # 通常，我们建议将脚本充分测试后check-in到代码仓库中，并通过makefile运行它们
+          # 例如：- run: make prepare
+          # 这里为了演示方便，将脚本内容显式写入流水线
+          - run: |
+              echo "Setup Serverless Devs ing..."
+              # 打开调试模式，将命令输出
+              # set -x
+              ls -al
+              # aliyun cloud authentication infos.
+              access_key_id=${{ sts.accessKeyId || "dummy-ak" }}
+              access_key_secret=${{ sts.accessKeySecret || "dummy-sk" }}
+              security_token=${{ sts.securityToken || "dummy-token" }}
+              uid=${{ uid || "dummy-uid"}}
+              # account info alias
+              alias=my-account
+              s --version
+              if [[ $? -ne 0 ]]; then
+                echo "Serverless Devs is not installed."
+                exit 1
+              fi
+              s config add --AccessKeyID "${access_key_id}" --AccessKeySecret "${access_key_secret}"               --AccountID "${uid}" --SecurityToken "${security_token}" --access "${alias}" -f
+              if [[ $? -ne 0 ]]; then
+                echo "Failed to setup Serverless Devs."
+                exit 1
+              fi
+              echo "Setup Serverless Devs success."
+            # 执行s-plan，并打印输出内容
+            # 这里为了说明engine能力，将它拆分成了多个step执行
+          - run: s plan --local --access my-account -o json >> plan.out
+          - run: echo "s plan finished."
+          - run: cat plan.out
+    # 任务模板。这里使用了内置的模板serverless-runner-task
+    taskTemplate: serverless-runner-task
+    # 执行顺序，当前任务执行依赖runAfters任务都执行成功
+    runAfters: []
+  - name: pre-check-approval
+    context:
+      data:
+        dingdingNotification:
+          # 关闭通知
+          enable: false
+        # 打开任务执行
+        enable: true
+    # 采用内置的need-approval模板
+    taskTemplate: need-approval
+    runAfters:
+    # 需要在pre-check执行后才执行
+    - name: pre-check
+  # 构建并部署
+  - name: build-and-deploy
+    context:
+      data:
+        # 打开任务执行，默认是关闭的
+        enable: true
+        # 同样可以在此处声明钉钉告警配置，修改告警模板
+        # dingdingNotification:
+        # 同样可以在此处声明或修改RunnerConfig
+        # runnerConfig:
+        # 执行步骤。下述步骤将会采用开源项目serverless-cd提供的engine进行执行
+        steps:
+          # 每个Task都是独立运行的Serverless实例，需要重新checkout
+          # 如果使用了缓存，它会执行得很快
+          - plugin: "@serverless-cd/checkout"
+          # 同理，需要再次初始化s工具
+          - run: |
+              echo "Setup Serverless Devs ing..."
+              # 打开调试模式，将命令输出
+              # set -x
+              ls -al
+              # aliyun cloud authentication infos.
+              access_key_id=${{ sts.accessKeyId || "dummy-ak" }}
+              access_key_secret=${{ sts.accessKeySecret || "dummy-sk" }}
+              security_token=${{ sts.securityToken || "dummy-token" }}
+              uid=${{ uid || "dummy-uid"}}
+              # account info alias
+              alias=my-account
+              s --version
+              if [[ $? -ne 0 ]]; then
+                echo "Serverless Devs is not installed."
+                exit 1
+              fi
+              s config add --AccessKeyID "${access_key_id}" --AccessKeySecret "${access_key_secret}"               --AccountID "${uid}" --SecurityToken "${security_token}" --access "${alias}" -f
+              if [[ $? -ne 0 ]]; then
+                echo "Failed to setup Serverless Devs."
+                exit 1
+              fi
+              echo "Setup Serverless Devs success."
+          # 执行s-deploy
+          - run: |
+              echo "Deploy by Serverless Devs ing..."
+              # set -x
+              alias=my-account
+              deploy_file=${{ ctx.data.deployFile || "" }}
+              if [[ -z "${deploy_file}" ]]; then
+                if [[ -f "s.yaml" ]]; then
+                  deploy_file="s.yaml"
+                elif [[ -f "s.yml" ]]; then
+                  deploy_file="s.yml"
+                fi
+              fi
+              if [[ ! -f "${deploy_file}" ]]; then
+                echo "Failed to find s.yaml file."
+                exit 1
+              fi
+              echo "s.yaml file location: ${deploy_file}"
+              s deploy --access "${alias}" -t "${deploy_file}" --use-local --assume-yes --skip-push
+              echo "Deploy by Serverless Devs success."
+    taskTemplate: serverless-runner-task
+    # 执行顺序，当前任务执行依赖runAfters任务都执行成功
+    runAfters:
+    # 在approval后执行
+    - name: pre-check-approval
