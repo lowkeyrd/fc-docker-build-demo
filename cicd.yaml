@@ -180,11 +180,10 @@ spec:
               fi
               echo "s.yaml file location: ${deploy_file}"
               export GIT_COMMIT_ID=<%.git.shortCommitId%>
-              echo "GIT_COMMIT_ID is ${GIT_COMMIT_ID}"
               s deploy --access "${alias}" -t "${deploy_file}" --use-local --assume-yes --skip-push
               echo "Deploy by Serverless Devs success."
     taskTemplate: serverless-runner-task
     # 执行顺序，当前任务执行依赖runAfters任务都执行成功
     runAfters:
     # 在approval后执行
-    - name: pre-check-approval
+    - name: build-image-task
