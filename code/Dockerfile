@@ -18,6 +18,6 @@ COPY . .
 
 # 使用nginx来提供静态资源服务
 FROM nginx:alpine
-COPY --from=0 /app/dist /usr/share/nginx/html
+COPY --from=0 /app /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
