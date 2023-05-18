@@ -186,4 +186,4 @@ spec:
     # 执行顺序，当前任务执行依赖runAfters任务都执行成功
     runAfters:
     # 在approval后执行
-    - name: build-image-task
+    - name: build-image
