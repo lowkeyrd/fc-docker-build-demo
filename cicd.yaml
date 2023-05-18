@@ -163,25 +163,10 @@ spec:
               echo "Setup Serverless Devs success."
           # 执行s-deploy
           - run: |
-              echo "Deploy by Serverless Devs ing..."
-              # set -x
-              alias=my-account
-              deploy_file=${{ ctx.data.deployFile || "" }}
-              if [[ -z "${deploy_file}" ]]; then
-                if [[ -f "s.yaml" ]]; then
-                  deploy_file="s.yaml"
-                elif [[ -f "s.yml" ]]; then
-                  deploy_file="s.yml"
-                fi
-              fi
-              if [[ ! -f "${deploy_file}" ]]; then
-                echo "Failed to find s.yaml file."
-                exit 1
-              fi
+              # set -ex
               echo "s.yaml file location: ${deploy_file}"
               export GIT_COMMIT_ID=<%.git.shortCommitId%>
               s deploy --access "${alias}" -t "${deploy_file}" --use-local --assume-yes --skip-push
-              echo "Deploy by Serverless Devs success."
     taskTemplate: serverless-runner-task
     # 执行顺序，当前任务执行依赖runAfters任务都执行成功
     runAfters:
