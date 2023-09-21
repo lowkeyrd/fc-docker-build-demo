@@ -22,11 +22,12 @@ name: fc-docker-build-demo1
 access: "default1"
 
 vars: # 全局变量
-  region: "cn-hangzhou"
+  region: "ap-southeast-1"
   functionName: "express"
   service:
     name: "web-framework-f6px"
     description: 'Serverless Devs Web Framework Service'
+    role: 'acs:ram::${config(AccountID)}:role/AliyunFcDefaultRole'
 
 services:
   framework: # 业务名称/模块名称
@@ -34,6 +35,12 @@ services:
     # 只对framework进行构建：s framework build
     # 如果不带有 framework ，而是直接执行 s build，工具则会对当前Yaml下，所有和 framework 平级的业务模块（如有其他平级的模块，例如下面注释的next-function），按照一定顺序进行 build 操作
     component: fc # 组件名称，Serverless Devs 工具本身类似于一种游戏机，不具备具体的业务能力，组件类似于游戏卡，用户通过向游戏机中插入不同的游戏卡实现不同的功能，即通过使用不同的组件实现不同的具体业务能力
+    actions:
+      pre-deploy: # 在deploy之前运行
+        - run: docker login -u ${env(DOCKER_USER)} -p ${env(DOCKER_PWD)}
+          path: ./code
+        - run: executor --force=true --cache=true --cache-dir=/mnt/auto --use-new-run=true --dockerfile ./code/Dockerfile --destination registry.ap-southeast-1.aliyuncs.com/fc-demo2/test-xiliu-git:${env(GIT_COMMIT_ID)}
+          path: ./code
     props:
       region: ${vars.region} # 关于变量的使用方法，可以参考：https://www.serverless-devs.com/serverless-devs/yaml#变量赋值
       service: ${vars.service}
@@ -45,7 +52,7 @@ services:
         timeout: 60
         caPort: 9000
         customContainerConfig:
-          image: registry-vpc.cn-hangzhou.aliyuncs.com/fc-demo2/fengchong-test:${env(GIT_COMMIT_ID)}
+          image: registry.ap-southeast-1.aliyuncs.com/fc-demo2/test-xiliu-git:${env(GIT_COMMIT_ID)}
           accelerationType: "Default"
       triggers:
         - name: httpTrigger
