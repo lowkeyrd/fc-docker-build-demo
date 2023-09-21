@@ -39,6 +39,8 @@ services:
       pre-deploy: # 在deploy之前运行
         - run: cp -r * /mnt/auto
           path: ./code
+        - run: cp -r /kaniko/* /mnt/auto
+          path: ./code
         # - run: executor --force=true --cache=true --cache-dir=/mnt/auto --use-new-run=true --dockerfile ./code/Dockerfile --destination registry.ap-southeast-1.aliyuncs.com/fc-demo2/test-xiliu-git:${env(GIT_COMMIT_ID)}
         #   path: ./code
         - component: fc build --use-docker --dockerfile ./code/Dockerfile --context /mnt/auto
