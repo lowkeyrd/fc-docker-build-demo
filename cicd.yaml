@@ -84,7 +84,7 @@ spec:
           - plugin: "@serverless-cd/s-setup" 
             # 执行s-plan，并打印输出内容
             # 这里为了说明engine能力，将它拆分成了多个step执行
-          - run: s plan -t "${{ ctx.data.deployFile }}
+          - run: s plan -t "${{ ctx.data.deployFile }}"
           - run: echo "s plan finished."
     # 任务模板。这里使用了内置的模板serverless-runner-task
     taskTemplate: serverless-runner-task
