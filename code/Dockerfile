@@ -2,8 +2,6 @@
 FROM node:alpine
 
 # 设置工作目录
-COPY /usr/local/lib /usr/local/lib
-
 WORKDIR /app
 
 # 复制package.json和package-lock.json到容器中

@@ -134,6 +134,7 @@ spec:
           - plugin: "@serverless-cd/s-setup"
           # 执行s-deploy
           - run: |
+              set -e
               export GIT_COMMIT_ID=<%.git.shortCommitId%>
               s deploy -t "${{ ctx.data.deployFile }}" --use-local --assume-yes --skip-push
               echo "Deploy by Serverless Devs success."
