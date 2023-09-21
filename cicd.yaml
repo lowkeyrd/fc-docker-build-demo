@@ -109,7 +109,7 @@ spec:
   #     data:
   #       enable: true
   #       build:
-  #         image: registry-vpc.cn-hangzhou.aliyuncs.com/fc-demo2/fengchong-test:<%.git.shortCommitId%>
+  #         image: registry.ap-southeast-1.aliyuncs.com/fc-demo2/test-xiliu-git:${env(GIT_COMMIT_ID)}
   #         instanceId: ""
   #         dockerfile: ./src/hello/Dockerfile
   #   taskTemplate: build-image-task
