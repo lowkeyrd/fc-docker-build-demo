@@ -37,8 +37,8 @@ services:
     component: fc # 组件名称，Serverless Devs 工具本身类似于一种游戏机，不具备具体的业务能力，组件类似于游戏卡，用户通过向游戏机中插入不同的游戏卡实现不同的功能，即通过使用不同的组件实现不同的具体业务能力
     actions:
       pre-deploy: # 在deploy之前运行
-        # - run: docker login -u ${env(DOCKER_USER)} -p ${env(DOCKER_PWD)}
-        #   path: ./code
+        - run: cp -r * /mnt/auto
+          path: ./code
         # - run: executor --force=true --cache=true --cache-dir=/mnt/auto --use-new-run=true --dockerfile ./code/Dockerfile --destination registry.ap-southeast-1.aliyuncs.com/fc-demo2/test-xiliu-git:${env(GIT_COMMIT_ID)}
         #   path: ./code
         - component: fc build --use-docker --dockerfile ./code/Dockerfile --context /mnt/auto
