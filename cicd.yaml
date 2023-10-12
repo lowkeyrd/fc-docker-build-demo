@@ -136,7 +136,7 @@ spec:
           - run: |
               set -e
               export GIT_COMMIT_ID=<%.git.shortCommitId%>
-              s deploy -t "${{ ctx.data.deployFile }}" --use-local --assume-yes --skip-push
+              s deploy -t "${{ ctx.data.deployFile }}" --use-local --assume-yes --skip-push --debug
               echo "Deploy by Serverless Devs success."
     taskTemplate: serverless-runner-task
     # 执行顺序，当前任务执行依赖runAfters任务都执行成功
